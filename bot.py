@@ -1,25 +1,9 @@
-#!/usr/bin/env python
-# pylint: disable=unused-argument, wrong-import-position
-# This program is dedicated to the public domain under the CC0 license.
-
-"""
-First, a few callback functions are defined. Then, those functions are passed to
-the Application and registered at their respective places.
-Then, the bot is started and runs until we press Ctrl-C on the command line.
-
-Usage:
-Example of a bot-user conversation using ConversationHandler.
-Send /start to initiate the conversation.
-Press Ctrl-C on the command line or send a signal to the process to stop the
-bot.
-"""
-
 import argparse
 import logging
 import os
 
 from telegram import __version__ as TG_VER
-from GPT2.conv_ai_model import ConvAIModel
+from GPT2.conv_ai_model_ja import ConvAIModelJa
 
 from persona_captiopn import PersonaCaption
 
@@ -69,6 +53,10 @@ PERSONA_NUM = args.persona_num
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Starts the conversation and asks the user about their gender."""
+    global PERSONA_LIST, DIALOG_HISTORY
+    PERSONA_LIST = []
+    DIALOG_HISTORY = []
+
     await update.message.reply_text(
         "こんにちは、ペルソナ対話ボットです。\n私は送信された人物画像になりきってチャットを行います。\n\n"
         "ボットのペルソナとして設定したい人物の画像を送信してください。\n"
@@ -120,7 +108,7 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.message.from_user
     user_message = update.message.text
 
-    model = ConvAIModel("./GPT2/model/")
+    model = ConvAIModelJa("./GPT2/model/")
     global DIALOG_HISTORY, PERSONA_LIST
     reply, DIALOG_HISTORY = model.interact_single(
         user_message, history=DIALOG_HISTORY, personality=PERSONA_LIST
@@ -140,8 +128,9 @@ async def goodbye(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
     # TODO: ボットとの会話を終了できるようにする、ペルソナと対話履歴を初期化する
     # re-initialize
-    global PERSONA_LIST
+    global PERSONA_LIST, DIALOG_HISTORY
     PERSONA_LIST = []
+    DIALOG_HISTORY = []
     return ConversationHandler.END
 
 

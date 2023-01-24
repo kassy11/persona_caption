@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from transformers import BertJapaneseTokenizer, BertModel
 import torch
 import scipy.spatial
