@@ -1,5 +1,3 @@
-# 学習済みモデルとトークナイザーを読み込む
-
 import logging
 from VLT5.vlt5_model import VLT5Model
 from VLT5.vlt5_tokenizer import VLT5Tokenizer
