@@ -39,16 +39,8 @@ TOKEN = os.environ.get("TOKEN")
 PERSONA_LIST = []
 DIALOG_HISTORY = []
 
-parser = argparse.ArgumentParser()
-# TODO: max_persona_numに変える？サイズを制御するとあんまり関係ないものも出力されそう
-parser.add_argument(
-    "--persona_num",
-    default=5,
-    type=int,
-    help="Number of personas output. Default num is 5.",
-)
-args = parser.parse_args()
-PERSONA_NUM = args.persona_num
+# We used 5 pairs of personas in the dialogue model training, so output num is 5.
+PERSONA_OUTPUT_NUM = 5
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -76,8 +68,8 @@ async def photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     persona_caption = PersonaCaption()
     global PERSONA_LIST
-    PERSONA_LIST = persona_caption.get_caption(image_path, PERSONA_NUM)
-    assert PERSONA_NUM == len(PERSONA_LIST)
+    PERSONA_LIST = persona_caption.get_caption(image_path, PERSONA_OUTPUT_NUM)
+    assert PERSONA_OUTPUT_NUM == len(PERSONA_LIST)
 
     await update.message.reply_text(
         "ありがとうございます。この人物のペルソナは以下になります。\n\n"
