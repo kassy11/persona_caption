@@ -1,6 +1,5 @@
 from transformers import BertJapaneseTokenizer, BertModel
 import torch
-import scipy.spatial
 
 
 class SentenceBertJapanese:

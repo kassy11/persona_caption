@@ -1,4 +1,3 @@
-import argparse
 import logging
 import os
 
@@ -41,6 +40,16 @@ DIALOG_HISTORY = []
 
 # We used 5 pairs of personas in the dialogue model training, so output num is 5.
 PERSONA_OUTPUT_NUM = 5
+
+CONV_AI_PARAMS = {
+    "do_sample": True,
+    "temperature": 1.0,
+    "top_k": 50,
+    "top_p": 0.9,
+    "max_history": 3,
+    "max_length": 50,
+    "min_length": 10,
+}
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -94,20 +103,20 @@ async def skip_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return ConversationHandler.END
 
 
-# TODO: 対話モデルを使って会話するように変更
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Chat using gpt2 model."""
     user = update.message.from_user
     user_message = update.message.text
 
-    model = ConvAIModelJa("./GPT2/model/")
+    model = ConvAIModelJa("./outputs", args=CONV_AI_PARAMS)
+    print(model)
     global DIALOG_HISTORY, PERSONA_LIST
     reply, DIALOG_HISTORY = model.interact_single(
         user_message, history=DIALOG_HISTORY, personality=PERSONA_LIST
     )
 
     logger.info("User %s send 「%s」 to bot", user.first_name, user_message)
-    logger.info("Dialog history is %s.", DIALOG_HISTORY)
+    logger.info("Length of dialog history is %s.", len(DIALOG_HISTORY))
     await update.message.reply_text(reply)
 
 
@@ -118,7 +127,6 @@ async def goodbye(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "会話を終了します。\nまたチャットを始めたい場合は/startコマンドを入力してください。\n\n" "さようなら！",
         reply_markup=ReplyKeyboardRemove(),
     )
-    # TODO: ボットとの会話を終了できるようにする、ペルソナと対話履歴を初期化する
     # re-initialize
     global PERSONA_LIST, DIALOG_HISTORY
     PERSONA_LIST = []
