@@ -98,7 +98,7 @@ class PersonaCaption:
         # TODO: もう少しword_scoreの変化を大きく変更できないか？
         return word_score / (distance + 1)
 
-    def get_caption(self, image_path, persona_num):
+    def get_caption(self, image_path, persona_output_num):
         # TODO: カテゴリの重複削除→含意関係認識
         word_score_dict = self._get_word_score_dict(image_path)
         search_result = self._search(word_score_dict)
@@ -110,7 +110,7 @@ class PersonaCaption:
             if label not in label_result:
                 persona_list.append(result[0])
                 label_result.append(label)
-                if len(persona_list) >= persona_num:
+                if len(persona_list) >= persona_output_num:
                     break
 
         logger.info(
