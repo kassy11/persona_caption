@@ -1,5 +1,6 @@
 import logging
 import scipy.spatial
+from nli import BertNLI
 from object_detection import ObjectDetection
 from sentence_bert import SentenceBertJapanese
 from vqa import Vqa
@@ -90,7 +91,10 @@ class PersonaCaption:
                     ):
                         search_result[persona_sentence] = persona_score
         search_result = sorted(search_result.items(), key=lambda x: x[1], reverse=True)
-        logger.info("Successfully search by queries. result = %s", search_result)
+        logger.info(
+            "Successfully search by queries. Top 10 search result = %s",
+            search_result[:10],
+        )
         return search_result
 
     def _get_persona_score(self, word_score, distance):
@@ -103,14 +107,25 @@ class PersonaCaption:
         search_result = self._search(word_score_dict)
         persona_list = []
         label_result = []
+
+        nli = BertNLI()
         for result in search_result:
-            label = self.persona_data[result[0]]
+            persona_desc = result[0]
             # カテゴリの重複削除
-            if label not in label_result:
-                persona_list.append(result[0])
-                label_result.append(label)
-                if len(persona_list) >= persona_output_num:
-                    break
+            label = self.persona_data[persona_desc]
+            if (
+                label in label_result
+                ## == "contradiction"にするか!="neutral"にするか
+                and nli.predict(persona_list[-1], persona_desc) != "neutral"
+            ):
+                logger.info(
+                    "Search results were skipped without adding to persona list."
+                )
+                continue
+            persona_list.append(persona_desc)
+            label_result.append(label)
+            if len(persona_list) >= persona_output_num:
+                break
 
         logger.info(
             "Successfully get persona caption. persona caption = %s", persona_list

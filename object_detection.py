@@ -9,8 +9,9 @@ logger = logging.getLogger(__name__)
 
 
 class ObjectDetection:
-    def __init__(self):
-        self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    def __init__(self, model_name_or_path="unc-nlp/frcnn-vg-finetuned", device=None):
+        if device is None:
+            self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
         # 日本語訳した物体の分類ラベル
         self.obj_ids = []
         with open("./VLT5/VG/objects_vocab.txt") as f:
@@ -18,9 +19,9 @@ class ObjectDetection:
                 obj = unicodedata.normalize("NFKC", obj)
                 self.obj_ids.append(obj.split(",")[0].lower().strip())
 
-        self.frcnn_cfg = Config.from_pretrained("unc-nlp/frcnn-vg-finetuned")
+        self.frcnn_cfg = Config.from_pretrained(model_name_or_path)
         self.frcnn = GeneralizedRCNN.from_pretrained(
-            "unc-nlp/frcnn-vg-finetuned", config=self.frcnn_cfg
+            model_name_or_path, config=self.frcnn_cfg
         )
         self.frcnn.to(self.device)
 

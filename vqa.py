@@ -9,16 +9,21 @@ logger = logging.getLogger(__name__)
 
 class Vqa:
     def __init__(
-        self, normalize_boxes, roi_features, model_path="sonoisa/vl-t5-base-japanese"
+        self,
+        normalize_boxes,
+        roi_features,
+        model_name_or_path="sonoisa/vl-t5-base-japanese",
+        device=None,
     ):
         self.roi_features = roi_features
         self.normalized_boxes = normalize_boxes
-        self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
-        self.vlt5 = VLT5Model.from_pretrained(model_path)
+        if device is None:
+            self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        self.vlt5 = VLT5Model.from_pretrained(model_name_or_path)
         self.vlt5.to(self.device)
 
         self.tokenizer = VLT5Tokenizer.from_pretrained(
-            model_path, max_length=24, do_lower_case=True
+            model_name_or_path, max_length=24, do_lower_case=True
         )
         self.vlt5.resize_token_embeddings(self.tokenizer.vocab_size)
         self.vlt5.tokenizer = self.tokenizer
