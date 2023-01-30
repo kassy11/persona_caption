@@ -9,9 +9,8 @@ logger = logging.getLogger(__name__)
 
 
 class PersonaCaption:
-    def __init__(self, model_path="sonoisa/sentence-bert-base-ja-mean-tokens"):
-        self.model_path = model_path
-        self.model = SentenceBertJapanese(model_path)
+    def __init__(self):
+        self.model = SentenceBertJapanese()
 
         self.persona_data = {}
         with open("./data/persona_list.csv") as f:
