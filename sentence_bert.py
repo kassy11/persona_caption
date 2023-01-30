@@ -9,13 +9,13 @@ class SentenceBertJapanese:
         device=None,
     ):
         self.tokenizer = BertJapaneseTokenizer.from_pretrained(model_name_or_path)
-        self.model = BertModel.from_pretrained(model_name_or_path)
-        self.model.eval()
+        self.sbert = BertModel.from_pretrained(model_name_or_path)
+        self.sbert.eval()
 
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
         self.device = torch.device(device)
-        self.model.to(device)
+        self.sbert.to(device)
 
     def _mean_pooling(self, model_output, attention_mask):
         token_embeddings = model_output[0]
@@ -36,7 +36,7 @@ class SentenceBertJapanese:
             encoded_input = self.tokenizer.batch_encode_plus(
                 batch, padding="longest", truncation=True, return_tensors="pt"
             ).to(self.device)
-            model_output = self.model(**encoded_input)
+            model_output = self.sbert(**encoded_input)
             sentence_embeddings = self._mean_pooling(
                 model_output, encoded_input["attention_mask"]
             ).to("cpu")
