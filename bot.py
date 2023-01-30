@@ -37,6 +37,7 @@ PHOTO = 0
 TOKEN = os.environ.get("TOKEN")
 PERSONA_LIST = []
 DIALOG_HISTORY = []
+CHAT_END = False
 
 # We used 5 pairs of personas in the dialogue model training, so output num is 5.
 PERSONA_OUTPUT_NUM = 5
@@ -54,9 +55,10 @@ CONV_AI_PARAMS = {
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Starts the conversation and asks the user about their gender."""
-    global PERSONA_LIST, DIALOG_HISTORY
+    global PERSONA_LIST, DIALOG_HISTORY, CHAT_END
     PERSONA_LIST = []
     DIALOG_HISTORY = []
+    CHAT_END = False
 
     await update.message.reply_text(
         "こんにちは、ペルソナ対話ボットです。\n私は送信された人物画像になりきってチャットを行います。\n\n"
@@ -106,18 +108,22 @@ async def skip_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Chat using gpt2 model."""
     user = update.message.from_user
-    user_message = update.message.text
 
-    model = ConvAIModelJa("./GPT2/model/", args=CONV_AI_PARAMS)
-    print(model)
-    global DIALOG_HISTORY, PERSONA_LIST
-    reply, DIALOG_HISTORY = model.interact_single(
-        user_message, history=DIALOG_HISTORY, personality=PERSONA_LIST
-    )
+    global CHAT_END
+    if not CHAT_END:
+        user_message = update.message.text
 
-    logger.info("User %s send 「%s」 to bot", user.first_name, user_message)
-    logger.info("Length of dialog history is %s.", len(DIALOG_HISTORY))
-    await update.message.reply_text(reply)
+        model = ConvAIModelJa("./GPT2/model/", args=CONV_AI_PARAMS)
+        global DIALOG_HISTORY, PERSONA_LIST
+        reply, DIALOG_HISTORY = model.interact_single(
+            user_message, history=DIALOG_HISTORY, personality=PERSONA_LIST
+        )
+
+        logger.info("User %s send 「%s」 to bot", user.first_name, user_message)
+        logger.info("Length of dialog history is %s.", len(DIALOG_HISTORY))
+        await update.message.reply_text(reply)
+    else:
+        await update.message.reply_text("チャットを始めたい場合は/startコマンドを入力してください。")
 
 
 async def goodbye(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -128,9 +134,10 @@ async def goodbye(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         reply_markup=ReplyKeyboardRemove(),
     )
     # re-initialize
-    global PERSONA_LIST, DIALOG_HISTORY
+    global PERSONA_LIST, DIALOG_HISTORY, CHAT_END
     PERSONA_LIST = []
     DIALOG_HISTORY = []
+    CHAT_END = True
     return ConversationHandler.END
 
 
