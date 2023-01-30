@@ -71,7 +71,7 @@ async def photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Stores the photo."""
     user = update.message.from_user
     photo_file = await update.message.photo[-1].get_file()
-    image_path = "./images/photo.jpg"
+    image_path = "./photo/portrait.jpg"
     await photo_file.download_to_drive(image_path)
     logger.info("Photo of %s: %s", user.first_name, image_path)
 
@@ -108,7 +108,7 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.message.from_user
     user_message = update.message.text
 
-    model = ConvAIModelJa("./outputs", args=CONV_AI_PARAMS)
+    model = ConvAIModelJa("./GPT2/model/", args=CONV_AI_PARAMS)
     print(model)
     global DIALOG_HISTORY, PERSONA_LIST
     reply, DIALOG_HISTORY = model.interact_single(

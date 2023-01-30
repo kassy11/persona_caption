@@ -51,8 +51,6 @@ class ConvAIModelJa(ConvAIModel):
         # 日本語版のモデルに合わせる
         config_class, model_class, tokenizer_class = MODEL_CLASSES[model_type]
         self.__dict__.update(kwargs)
-        self.tokenizer = tokenizer_class.from_pretrained(model_name)
-        self.tokenizer.do_lower_case = True
         self.config = config_class.from_pretrained(model_name, **self.args.config)
 
         if not self.args.quantized_model:
@@ -65,6 +63,10 @@ class ConvAIModelJa(ConvAIModel):
                 None, config=self.config, state_dict=quantized_weights
             )
 
+        self.tokenizer = tokenizer_class.from_pretrained(model_name)
+        self.tokenizer.do_lower_case = True
+        self.add_special_tokens_(self.model, self.tokenizer)
+
         if self.args.dynamic_quantize:
             self.model = torch.quantization.quantize_dynamic(
                 self.model, {torch.nn.Linear}, dtype=torch.qint8
@@ -74,7 +76,6 @@ class ConvAIModelJa(ConvAIModel):
         if self.args.dynamic_quantize:
             self.args.quantized_model = True
 
-        self.add_special_tokens_(self.model, self.tokenizer)
         self.args.model_name = model_name
         self.args.model_type = model_type
 
