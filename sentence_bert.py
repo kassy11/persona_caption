@@ -3,7 +3,11 @@ import torch
 
 
 class SentenceBertJapanese:
-    def __init__(self, model_name_or_path, device=None):
+    def __init__(
+        self,
+        model_name_or_path="sonoisa/sentence-bert-base-ja-mean-tokens-v2",
+        device=None,
+    ):
         self.tokenizer = BertJapaneseTokenizer.from_pretrained(model_name_or_path)
         self.model = BertModel.from_pretrained(model_name_or_path)
         self.model.eval()
