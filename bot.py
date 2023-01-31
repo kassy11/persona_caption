@@ -39,7 +39,7 @@ PERSONA_LIST = []
 DIALOG_HISTORY = []
 CHAT_END = False
 
-# We used 5 pairs of personas in the dialogue model training, so output num is 5.
+# Dialogue model training was used JPersonaChat(5 pairs of personas), so output num is 5.
 PERSONA_OUTPUT_NUM = 5
 
 CONV_AI_PARAMS = {
