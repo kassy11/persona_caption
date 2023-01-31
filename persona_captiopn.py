@@ -1,4 +1,5 @@
 import logging
+import random
 import scipy.spatial
 from nli import BertNLI
 from object_detection import ObjectDetection
@@ -100,7 +101,7 @@ class PersonaCaption:
         # TODO: もう少しword_scoreの変化を大きく変更できないか？
         return word_score / (distance + 1)
 
-    def get_caption(self, image_path, persona_output_num):
+    def get_persoa_list(self, image_path, persona_output_num):
         word_score_dict = self._get_word_score_dict(image_path)
         search_result = self._search(word_score_dict)
         persona_list = []
@@ -134,3 +135,6 @@ class PersonaCaption:
             if nli.predict(persona, new_persona) == "contradiction":
                 return True
         return False
+
+    def get_random_persona_list(self, persona_output_num):
+        return random.sample(list(self.persona_data.keys()), persona_output_num)
