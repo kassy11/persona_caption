@@ -39,7 +39,7 @@ PERSONA_LIST = []
 DIALOG_HISTORY = []
 CHAT_END = False
 
-# We used 5 pairs of personas in the dialogue model training, so output num is 5.
+# Dialogue model training was used JPersonaChat(5 pairs of personas), so output num is 5.
 PERSONA_OUTPUT_NUM = 5
 
 CONV_AI_PARAMS = {
@@ -55,15 +55,18 @@ CONV_AI_PARAMS = {
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Starts the conversation and asks the user about their gender."""
+    user = update.message.from_user
+    logger.info("User %s activated this bot", user.first_name)
+
     global PERSONA_LIST, DIALOG_HISTORY, CHAT_END
     PERSONA_LIST = []
     DIALOG_HISTORY = []
     CHAT_END = False
 
     await update.message.reply_text(
-        "こんにちは、ペルソナ対話ボットです。\n私は送信された人物画像になりきってチャットを行います。\n\n"
+        "こんにちは、ペルソナ対話ボットです。\n私は送信された人物のペルソナに沿ってチャットを行います。\n\n"
         "ボットのペルソナとして設定したい人物の画像を送信してください。\n"
-        "/skip コマンドで画像の送信をスキップし、デフォルトのボットとしてチャットすることも可能です。",
+        "/skip コマンドで画像の送信をスキップし、ランダムに選択されたペルソナを持つボットとしてチャットすることも可能です。",
         reply_markup=ReplyKeyboardRemove(),
     )
     return PHOTO
@@ -75,11 +78,11 @@ async def photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     photo_file = await update.message.photo[-1].get_file()
     image_path = "./photo/portrait.jpg"
     await photo_file.download_to_drive(image_path)
-    logger.info("Photo of %s: %s", user.first_name, image_path)
+    logger.info("Photo of User %s: %s", user.first_name, image_path)
 
     persona_caption = PersonaCaption()
     global PERSONA_LIST
-    PERSONA_LIST = persona_caption.get_caption(image_path, PERSONA_OUTPUT_NUM)
+    PERSONA_LIST = persona_caption.get_persoa_list(image_path, PERSONA_OUTPUT_NUM)
     assert PERSONA_OUTPUT_NUM == len(PERSONA_LIST)
 
     await update.message.reply_text(
@@ -98,8 +101,20 @@ async def skip_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Skips the photo."""
     user = update.message.from_user
     logger.info("User %s did not send a photo.", user.first_name)
+
+    persona_caption = PersonaCaption()
+    global PERSONA_LIST
+    PERSONA_LIST = persona_caption.get_random_persona_list(PERSONA_OUTPUT_NUM)
+    assert PERSONA_OUTPUT_NUM == len(PERSONA_LIST)
+
     await update.message.reply_text(
-        "画像の送信をスキップしました。\n" "デフォルトのボットとして設定します。\n\nチャットを始めましょう!"
+        "画像の送信をスキップしました。\n"
+        "ランダムに選択されたペルソナは以下になります。\n\n"
+        + "----------\n"
+        + "\n".join(PERSONA_LIST)
+        + "\n----------\n\n"
+        "以上をボットのペルソナとして設定します。\n\n"
+        "チャットを始めましょう!"
     )
 
     return ConversationHandler.END
@@ -120,9 +135,11 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         )
 
         logger.info("User %s send 「%s」 to bot", user.first_name, user_message)
-        logger.info("Length of dialog history is %s.", len(DIALOG_HISTORY))
         await update.message.reply_text(reply)
     else:
+        logger.info(
+            "User %s send message immediately after /goodbye command", user.first_name
+        )
         await update.message.reply_text("チャットを始めたい場合は/startコマンドを入力してください。")
 
 
@@ -146,7 +163,6 @@ def main() -> None:
     # Create the Application and pass it your bot's token.
     application = Application.builder().token(TOKEN).build()
 
-    # Add conversation handler with the states GENDER, PHOTO, LOCATION and BIO
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={

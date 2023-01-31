@@ -15,14 +15,13 @@ class BertNLI:
         self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
         self.label_map = {0: "entailment", 1: "neutral", 2: "contradiction"}
 
+    @torch.no_grad()
     def predict(self, premise, hypothesis):
         input = self.tokenizer.encode(premise, hypothesis, return_tensors="pt").to(
             self.device
         )
-        with torch.no_grad():
-            logits = self.nli(input)["logits"][0]
-            probs = logits.softmax(dim=-1)
-            probs = probs.cpu().numpy()
-            print(probs)
-            label = self.label_map[np.argmax(probs, axis=0)]
-            return label
+        logits = self.nli(input)["logits"][0]
+        probs = logits.softmax(dim=-1)
+        probs = probs.cpu().numpy()
+        label = self.label_map[np.argmax(probs, axis=0)]
+        return label

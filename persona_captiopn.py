@@ -1,4 +1,5 @@
 import logging
+import random
 import scipy.spatial
 from nli import BertNLI
 from object_detection import ObjectDetection
@@ -46,7 +47,7 @@ class PersonaCaption:
 
     def _get_word_score_dict(self, image_path, output_size=5):
         word_list = self._get_word_list(image_path)
-        # 物体検出とVQAで得た単語のスコアは1とする
+        # The score of a word obtained by object detection and VQA is 1.
         word_score_dict = {w: 1.0 for w in word_list}
         word2vec_model = KeyedVectors.load(
             "./data/chive-1.2-mc30_gensim/chive-1.2-mc30.kv"
@@ -64,7 +65,6 @@ class PersonaCaption:
         return word_score_dict
 
     def _search(self, word_score_dict, distance_threshold=1):
-        # ペルソナ文を検索し、結果のペルソナ文にスコアを設定して返す
         logger.info("Searching...")
         search_queries = list(word_score_dict.keys())
         persona_sentences = list(self.persona_data.keys())
@@ -81,7 +81,6 @@ class PersonaCaption:
             results = zip(range(len(distances)), distances)
             results = sorted(results, key=lambda x: x[1])
             for idx, distance in results:
-                ## TODO:全文についてスコア計算をしても良い
                 if distance < distance_threshold:
                     persona_sentence = persona_sentences[idx]
                     persona_score = self._get_persona_score(query_score, distance)
@@ -89,6 +88,7 @@ class PersonaCaption:
                         persona_sentence in search_result
                         and persona_score > search_result[persona_sentence]
                     ):
+                        # Add score to each persona.
                         search_result[persona_sentence] = persona_score
         search_result = sorted(search_result.items(), key=lambda x: x[1], reverse=True)
         logger.info(
@@ -101,28 +101,25 @@ class PersonaCaption:
         # TODO: もう少しword_scoreの変化を大きく変更できないか？
         return word_score / (distance + 1)
 
-    def get_caption(self, image_path, persona_output_num):
-        # TODO: カテゴリの重複削除→含意関係認識
+    def get_persoa_list(self, image_path, persona_output_num):
         word_score_dict = self._get_word_score_dict(image_path)
         search_result = self._search(word_score_dict)
         persona_list = []
         label_result = []
 
-        nli = BertNLI()
         for result in search_result:
-            persona_desc = result[0]
-            # カテゴリの重複削除
-            label = self.persona_data[persona_desc]
-            if (
-                label in label_result
-                ## == "contradiction"にするか!="neutral"にするか
-                and nli.predict(persona_list[-1], persona_desc) != "neutral"
+            new_persona = result[0]
+            # Skip if the persona category duplicates or contradicts any of the previous personas.
+            label = self.persona_data[new_persona]
+            if label in label_result or self._is_contradiction(
+                persona_list, new_persona
             ):
                 logger.info(
-                    "Search results were skipped without adding to persona list."
+                    "New persona 「%s」 were skipped without adding to persona list.",
+                    new_persona,
                 )
                 continue
-            persona_list.append(persona_desc)
+            persona_list.append(new_persona)
             label_result.append(label)
             if len(persona_list) >= persona_output_num:
                 break
@@ -131,3 +128,13 @@ class PersonaCaption:
             "Successfully get persona caption. persona caption = %s", persona_list
         )
         return persona_list
+
+    def _is_contradiction(self, persona_list, new_persona):
+        nli = BertNLI()
+        for persona in persona_list:
+            if nli.predict(persona, new_persona) == "contradiction":
+                return True
+        return False
+
+    def get_random_persona_list(self, persona_output_num):
+        return random.sample(list(self.persona_data.keys()), persona_output_num)

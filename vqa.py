@@ -40,12 +40,11 @@ class Vqa:
             vis_feats = self.roi_features.to(self.device)
             boxes = self.normalized_boxes.to(self.device)
 
-            # 回答生成
+            # Generate answers
             output = self.vlt5.generate(
                 input_ids=input_ids,
                 vis_inputs=(vis_feats, boxes),
             )
-            # 回答のトークン列を文字列に変換し、回答文に現れた画像領域IDをbox_ids変数に格納
             generated_sent = self.tokenizer.batch_decode(
                 output, skip_special_tokens=False
             )[0]
