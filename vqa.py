@@ -3,6 +3,7 @@ from VLT5.vlt5_model import VLT5Model
 from VLT5.vlt5_tokenizer import VLT5Tokenizer
 import re
 import torch
+import spacy
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,9 @@ class Vqa:
         box_ids = set()
         answer_list = []
 
+        nlp = spacy.load("ja_ginza")
+
+        logger.info("Getting answers to my question about the image.")
         for question in questions:
             input_ids = self.tokenizer(
                 question, return_tensors="pt", padding=True
@@ -55,11 +59,23 @@ class Vqa:
                 box_id = int(match.group(1))
                 box_ids.add(box_id)
 
-            # TODO: 原形に直す&ストップワード削除
-            answer_list.append(generated_sent)
+            logger.info(f"{question}")
+            logger.info(f"  -> {generated_sent}")
 
-        logger.info(
-            "Successfully answer questions from the photo. answer list = %s",
-            answer_list,
-        )
+            doc = nlp(generated_sent)
+            for tok in doc:
+                if tok.pos_ == "NUM":
+                    answer_list.append(self._get_age_answer(int(tok.text)))
+                if tok.pos_ in ("NOUN", "PRON", "PROPN", "ADJ"):
+                    answer_list.append(tok.text)
         return answer_list
+
+    def _get_age_answer(self, num):
+        if num >= 10 and num < 20:
+            return "10代"
+        elif num >= 20 and num < 30:
+            return "20代"
+        elif num >= 30 and num < 40:
+            return "30代"
+        else:
+            return "老い"

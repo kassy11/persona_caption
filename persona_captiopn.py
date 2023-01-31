@@ -36,7 +36,7 @@ class PersonaCaption:
 
         vqa = Vqa(normalize_boxes=normalized_boxes, roi_features=roi_features)
         questions = []
-        with open("./data/questions.txt") as f:
+        with open("./data/vqa_questions.txt") as f:
             for question in f.readlines():
                 questions.append(question)
         answers = list(set(vqa.get_answer(questions)))
@@ -98,7 +98,6 @@ class PersonaCaption:
         return search_result
 
     def _get_persona_score(self, word_score, distance):
-        # TODO: もう少しword_scoreの変化を大きく変更できないか？
         return word_score / (distance + 1)
 
     def get_persoa_list(self, image_path, persona_output_num):
@@ -115,7 +114,7 @@ class PersonaCaption:
                 persona_list, new_persona
             ):
                 logger.info(
-                    "New persona 「%s」 were skipped without adding to persona list.",
+                    "Persona 「%s」 were skipped without adding to persona list.",
                     new_persona,
                 )
                 continue
