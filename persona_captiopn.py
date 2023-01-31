@@ -110,7 +110,7 @@ class PersonaCaption:
             new_persona = result[0]
             # Skip if the persona category duplicates or contradicts any of the previous personas.
             label = self.persona_data[new_persona]
-            if label in label_result or self._is_contradiction(
+            if (label != "その他" and label in label_result) or self._is_contradiction(
                 persona_list, new_persona
             ):
                 logger.info(
