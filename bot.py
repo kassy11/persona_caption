@@ -82,7 +82,7 @@ async def photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     persona_caption = PersonaCaption()
     global PERSONA_LIST
-    PERSONA_LIST = persona_caption.get_persoa_list(image_path, PERSONA_OUTPUT_NUM)
+    PERSONA_LIST = persona_caption.get_persona_list(image_path, PERSONA_OUTPUT_NUM)
     assert PERSONA_OUTPUT_NUM == len(PERSONA_LIST)
 
     await update.message.reply_text(

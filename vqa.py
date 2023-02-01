@@ -63,19 +63,29 @@ class Vqa:
             logger.info(f"  -> {generated_sent}")
 
             doc = nlp(generated_sent)
+
+            if ("何歳" or "年齢") in question:
+                answer_list.append(self._get_age_answer(doc))
+
             for tok in doc:
-                if tok.pos_ == "NUM":
-                    answer_list.append(self._get_age_answer(int(tok.text)))
                 if tok.pos_ in ("NOUN", "PRON", "PROPN", "ADJ"):
                     answer_list.append(tok.text)
-        return answer_list
+        return list(set(answer_list))
 
-    def _get_age_answer(self, num):
-        if num >= 10 and num < 20:
-            return "10代"
-        elif num >= 20 and num < 30:
-            return "20代"
-        elif num >= 30 and num < 40:
-            return "30代"
-        else:
-            return "老い"
+    def _get_age_answer(self, doc):
+        for tok in doc:
+            if tok.pos_ == "NUM":
+                num = int(tok.text)
+                if num >= 10 and num < 20:
+                    return "10代"
+                elif num >= 20 and num < 30:
+                    return "20代"
+                elif num >= 30 and num < 40:
+                    return "30代"
+                else:
+                    return "老い"
+            else:
+                if ("幼" or "少" or "若") in tok.text:
+                    return "10代"
+                else:
+                    return tok.text

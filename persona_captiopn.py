@@ -39,16 +39,23 @@ class PersonaCaption:
         with open("./data/vqa_questions.txt") as f:
             for question in f.readlines():
                 questions.append(question)
-        answers = list(set(vqa.get_answer(questions)))
+        answers = vqa.get_answer(questions)
 
-        word_list = list(set(labels + answers))
-        logger.info("Successfully build word list. word list = %s", word_list)
-        return word_list
+        return labels, answers
 
     def _get_word_score_dict(self, image_path, output_size=5):
-        word_list = self._get_word_list(image_path)
-        # The score of a word obtained by object detection and VQA is 1.
-        word_score_dict = {w: 1.0 for w in word_list}
+        labels, answers = self._get_word_list(image_path)
+        # If there are duplicate elements in labels and answers,
+        # remove them from answers.
+        for label in labels:
+            if label in answers:
+                answers.remove(label)
+        # The score of a word obtained by object detection is 1.
+        labels_score_dict = {l: 1.0 for l in labels}
+        # The score of a word obtained by object detection is 0.9.
+        answers_score_dict = {a: 0.9 for a in answers}
+        word_score_dict = {**labels_score_dict, **answers_score_dict}
+
         word2vec_model = KeyedVectors.load(
             "./data/chive-1.2-mc30_gensim/chive-1.2-mc30.kv"
         )
@@ -56,11 +63,14 @@ class PersonaCaption:
             if query in word2vec_model:
                 for sim in word2vec_model.most_similar(query, topn=output_size):
                     word = sim[0]
-                    score = round(float(sim[1]), 3)
+                    sim_score = round(float(sim[1]), 3)
+                    # The score of a word obtained by Word2Vec
+                    # is the product of the cos similarity value and the query score.
+                    word_score = round(float(sim_score * word_score_dict[query]), 3)
                     if word not in word_score_dict or (
-                        word in word_score_dict and score > word_score_dict[word]
+                        word in word_score_dict and word_score > word_score_dict[word]
                     ):
-                        word_score_dict[word] = score
+                        word_score_dict[word] = word_score
         logger.info("Successfully build word score dict. dict = %s", word_score_dict)
         return word_score_dict
 
@@ -92,15 +102,15 @@ class PersonaCaption:
                         search_result[persona_sentence] = persona_score
         search_result = sorted(search_result.items(), key=lambda x: x[1], reverse=True)
         logger.info(
-            "Successfully search by queries. Top 10 search result = %s",
-            search_result[:10],
+            "Successfully search by queries. Top 30 search result = %s",
+            search_result[:30],
         )
         return search_result
 
     def _get_persona_score(self, word_score, distance):
         return word_score / (distance + 1)
 
-    def get_persoa_list(self, image_path, persona_output_num):
+    def get_persona_list(self, image_path, persona_output_num):
         word_score_dict = self._get_word_score_dict(image_path)
         search_result = self._search(word_score_dict)
         persona_list = []
@@ -132,6 +142,11 @@ class PersonaCaption:
         nli = BertNLI()
         for persona in persona_list:
             if nli.predict(persona, new_persona) == "contradiction":
+                logger.info(
+                    "Persona 「%s」 contradicts 「%s」 in persona list",
+                    new_persona,
+                    persona,
+                )
                 return True
         return False
 
