@@ -16,10 +16,9 @@ ATTR_TO_SPECIAL_TOKEN = {
 
 class ConvAIModelJa(ConvAIModel):
     def __init__(self, model_name="rinna/japanese-gpt2-small", args=None, **kwargs):
-        # NOTE: 親クラスのTokenizerクラス(GPT2Tokenizer)が
-        # rinna/japanese-gpt2に対応していないため、親クラスのコンストラクタは呼び出さない
+        # The constructor of the parent class is not called
+        # because the Tokenizer used in the parent class does not support Japanese.
 
-        # model_typeは決め打ちでgpt2とする
         model_type = "gpt2"
         MODEL_CLASSES = {
             "gpt2": (GPT2Config, GPT2DoubleHeadsModel, T5Tokenizer),
@@ -48,7 +47,6 @@ class ConvAIModelJa(ConvAIModel):
                 torch.cuda.manual_seed_all(self.args.manual_seed)
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        # 日本語版のモデルに合わせる
         config_class, model_class, tokenizer_class = MODEL_CLASSES[model_type]
         self.__dict__.update(kwargs)
         self.config = config_class.from_pretrained(model_name, **self.args.config)
@@ -82,9 +80,7 @@ class ConvAIModelJa(ConvAIModel):
         self.results = {}
 
     def add_special_tokens_(self, model, tokenizer):
-        # tokenizerの語彙数
         orig_num_tokens = tokenizer.vocab_size
-        # T5Tokenizerの特殊トークンをConvAIModelに合わせて上書きする
         num_added_tokens = tokenizer.add_special_tokens(
             ATTR_TO_SPECIAL_TOKEN
         )  # doesn't add if they are already there

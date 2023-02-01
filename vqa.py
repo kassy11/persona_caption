@@ -68,7 +68,7 @@ class Vqa:
                     answer_list.append(self._get_age_answer(int(tok.text)))
                 if tok.pos_ in ("NOUN", "PRON", "PROPN", "ADJ"):
                     answer_list.append(tok.text)
-        return answer_list
+        return list(set(answer_list))
 
     def _get_age_answer(self, num):
         if num >= 10 and num < 20:
