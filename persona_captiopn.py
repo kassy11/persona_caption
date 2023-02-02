@@ -84,11 +84,13 @@ class PersonaCaption:
         search_result = {}
         for query, query_embedding in zip(search_queries, query_embeddings):
             query_score = query_score_dict[query]
+            # cos_distance = 1- cos_similarity
             distances = scipy.spatial.distance.cdist(
                 [query_embedding], sentence_vectors, metric="cosine"
             )[0]
 
             results = zip(range(len(distances)), distances)
+            # sort by cos_distance ascending
             results = sorted(results, key=lambda x: x[1])
             for idx, distance in results:
                 if distance < distance_threshold:
