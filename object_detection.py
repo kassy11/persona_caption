@@ -4,6 +4,7 @@ from VLT5.inference.processing_image import Preprocess
 from VLT5.inference.modeling_frcnn import GeneralizedRCNN
 from VLT5.inference.utils import Config
 import unicodedata
+import spacy
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +13,7 @@ class ObjectDetection:
     def __init__(self, model_name_or_path="unc-nlp/frcnn-vg-finetuned", device=None):
         if device is None:
             self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+
         self.obj_ids = []
         with open("./VLT5/VG/objects_vocab.txt") as f:
             for obj in f.readlines():

@@ -63,13 +63,12 @@ class Vqa:
             logger.info(f"  -> {generated_sent}")
 
             doc = nlp(generated_sent)
-
             if ("何歳" or "年齢") in question:
                 answer_list.append(self._get_age_answer(doc))
-
-            for tok in doc:
-                if tok.pos_ in ("NOUN", "PRON", "PROPN", "ADJ"):
-                    answer_list.append(tok.text)
+            else:
+                for tok in doc:
+                    if tok.pos_ in ("NOUN", "PRON", "PROPN", "ADJ", "VERB"):
+                        answer_list.append(tok.text)
         return list(set(answer_list))
 
     def _get_age_answer(self, doc):
