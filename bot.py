@@ -33,11 +33,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-PHOTO = 0
+PHOTO, CHAT = range(2)
 TOKEN = os.environ.get("TOKEN")
 PERSONA_LIST = []
 DIALOG_HISTORY = []
-CHAT_END = False
 
 # Dialogue model training was used JPersonaChat(5 pairs of personas), so output num is 5.
 PERSONA_OUTPUT_NUM = 5
@@ -58,10 +57,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user = update.message.from_user
     logger.info("User %s activated this bot", user.first_name)
 
-    global PERSONA_LIST, DIALOG_HISTORY, CHAT_END
+    global PERSONA_LIST, DIALOG_HISTORY
     PERSONA_LIST = []
     DIALOG_HISTORY = []
-    CHAT_END = False
 
     await update.message.reply_text(
         "こんにちは、ペルソナ対話ボットです。\n私は送信された人物のペルソナに沿ってチャットを行います。\n\n"
@@ -94,7 +92,7 @@ async def photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         "チャットを始めましょう!"
     )
 
-    return ConversationHandler.END
+    return CHAT
 
 
 async def skip_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -117,30 +115,23 @@ async def skip_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         "チャットを始めましょう!"
     )
 
-    return ConversationHandler.END
+    return CHAT
 
 
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Chat using gpt2 model."""
     user = update.message.from_user
 
-    global CHAT_END
-    if not CHAT_END:
-        user_message = update.message.text
+    user_message = update.message.text
 
-        model = ConvAIModelJa("./GPT2/model/", args=CONV_AI_PARAMS)
-        global DIALOG_HISTORY, PERSONA_LIST
-        reply, DIALOG_HISTORY = model.interact_single(
-            user_message, history=DIALOG_HISTORY, personality=PERSONA_LIST
-        )
+    model = ConvAIModelJa("./GPT2/model/", args=CONV_AI_PARAMS)
+    global DIALOG_HISTORY, PERSONA_LIST
+    reply, DIALOG_HISTORY = model.interact_single(
+        user_message, history=DIALOG_HISTORY, personality=PERSONA_LIST
+    )
 
-        logger.info("User %s send 「%s」 to bot", user.first_name, user_message)
-        await update.message.reply_text(reply)
-    else:
-        logger.info(
-            "User %s send message immediately after /goodbye command", user.first_name
-        )
-        await update.message.reply_text("チャットを始めたい場合は/startコマンドを入力してください。")
+    logger.info("User %s send 「%s」 to bot", user.first_name, user_message)
+    await update.message.reply_text(reply)
 
 
 async def goodbye(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -151,10 +142,9 @@ async def goodbye(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         reply_markup=ReplyKeyboardRemove(),
     )
     # re-initialize
-    global PERSONA_LIST, DIALOG_HISTORY, CHAT_END
+    global PERSONA_LIST, DIALOG_HISTORY
     PERSONA_LIST = []
     DIALOG_HISTORY = []
-    CHAT_END = True
     return ConversationHandler.END
 
 
@@ -170,13 +160,12 @@ def main() -> None:
                 MessageHandler(filters.PHOTO, photo),
                 CommandHandler("skip", skip_photo),
             ],
+            CHAT: [MessageHandler(filters.TEXT & ~filters.COMMAND, chat)],
         },
         fallbacks=[CommandHandler("goodbye", goodbye)],
     )
 
     application.add_handler(conv_handler)
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
-    application.add_handler(CommandHandler("goodbye", goodbye))
 
     # Run the bot until the user presses Ctrl-C
     application.run_polling()
