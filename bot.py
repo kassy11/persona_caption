@@ -74,6 +74,10 @@ async def photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Stores the photo."""
     user = update.message.from_user
     photo_file = await update.message.photo[-1].get_file()
+
+    if not os.path.exists("./photo"):
+        os.mkdir("./photo")
+
     image_path = "./photo/portrait.jpg"
     await photo_file.download_to_drive(image_path)
     logger.info("Photo of User %s: %s", user.first_name, image_path)
