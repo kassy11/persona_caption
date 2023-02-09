@@ -18,13 +18,13 @@
 
 ### ペルソナキャプション生成
 
-<img src="./images/persona_caption.png" title="ペルソナキャプション生成" width="700">
+<img src="./images/persona_caption.png" title="ペルソナキャプション生成" width="800">
 
 ### ペルソナ対話
 
-<img src="./images/persona_dialog.png" title="ペルソナ対話" width="700">
+<img src="./images/persona_dialog.png" title="ペルソナ対話" width="800">
 
 ## 対話例
 
 <img src="./images/chat_example1.png" title="対話例1" width="700">
-<img src="./images/chat_example2.png" title="対話例2" width="700">
+<img src="./images/chat_example2.png" title="対話例2" width="500">
