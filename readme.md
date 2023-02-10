@@ -8,7 +8,7 @@
 2. 環境変数`TOKEN`にTelegramトークンを設定する: `export TOKEN=<YOUR TELEGRAM BOT TOKEN>`
 3. JPersonaChatでファインチューニング済みGPT2モデルを`GPT2/model/`以下に配置する
    1. ファインチューニングには[kassy11/convai_jpersona: ConvAI finetuned by JPesonaChat](https://github.com/kassy11/convai_jpersona)を利用してください
-4. [chiVe](https://github.com/WorksApplications/chiVe)のgensimデータをダウンロードし、`data/`以下に配置する
+4. [chiVe](https://github.com/WorksApplications/chiVe)のgensimデータをダウンロードし、`.kv`ファイルと `.npy`ファイルを`data/chive`以下に配置する
 5. Telegramボットを起動: `python bot.py`
 6. Telegramボットに`/start`と送信し、ボットを起動する
 

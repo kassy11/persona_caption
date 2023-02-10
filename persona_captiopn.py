@@ -1,4 +1,6 @@
+import glob
 import logging
+import os
 import random
 import scipy.spatial
 from nli import BertNLI
@@ -56,9 +58,19 @@ class PersonaCaption:
         vqa_answers_score_dict = {v: 0.9 for v in vqa_answers}
         query_score_dict = {**object_labels_score_dict, **vqa_answers_score_dict}
 
-        word2vec_model = KeyedVectors.load(
-            "./data/chive-1.2-mc30_gensim/chive-1.2-mc30.kv"
-        )
+        if not os.path.exists("./data/chive"):
+            logger.error("chiVe vector is not placed under ./data/chive")
+
+        kv_file = glob.glob("./data/chive/*.kv")
+        npy_file = glob.glob("./data/chive/*.npy")
+        if not kv_file or not npy_file:
+            logger.error(
+                "chiVe vector .kv or .npy file is not placed under ./data/chive"
+            )
+            logger.warn("Could not extract synonyms.")
+            return query_score_dict
+
+        word2vec_model = KeyedVectors.load(kv_file[0])
         for query in list(query_score_dict.keys()):
             if query in word2vec_model:
                 for sim in word2vec_model.most_similar(query, topn=output_size):
