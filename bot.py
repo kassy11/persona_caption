@@ -128,6 +128,15 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     user_message = update.message.text
 
+    if not os.path.exists("./GPT2/model") or not os.path.isfile(
+        "./GPT2/model/pytorch_model.bin"
+    ):
+        logger.error(
+            "GPT2 model file pytorch_model.bin is not placed under ./GPT2/model"
+        )
+        await update.message.reply_text("内部エラーが発生しました。\n現在チャットを行うことができません。")
+        return ConversationHandler.END
+
     model = ConvAIModelJa("./GPT2/model/", args=CONV_AI_PARAMS)
     global DIALOG_HISTORY, PERSONA_LIST
     reply, DIALOG_HISTORY = model.interact_single(

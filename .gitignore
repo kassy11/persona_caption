@@ -145,7 +145,6 @@ runs
 
 # data
 serialization_dir
-/data/chive-1.2-mc30_gensim
 
 # emacs
 *.*~
@@ -457,6 +456,6 @@ fabric.properties
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
 
-
+/data/chive
 GPT2/model
 photo/
