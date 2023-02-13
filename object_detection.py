@@ -4,9 +4,11 @@ from VLT5.inference.processing_image import Preprocess
 from VLT5.inference.modeling_frcnn import GeneralizedRCNN
 from VLT5.inference.utils import Config
 import unicodedata
-import spacy
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+)
 
 
 class ObjectDetection:
